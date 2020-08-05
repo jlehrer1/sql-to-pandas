@@ -1,6 +1,6 @@
-=============
-sql-to-pandas
-=============
+=============  
+sql-to-pandas  
+=============  
 
 Convert sql queries to pandas
 
