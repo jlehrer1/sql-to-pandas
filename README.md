@@ -1,8 +1,6 @@
-=============  
-sql-to-pandas  
-=============  
+# SQLtoPandas
 
-Convert sql queries to pandas
+Convert sql queries to Pandas code
 
 
 * Free software: MIT license
