@@ -3,8 +3,6 @@
 """Tests for `sql_to_pandas` package."""
 
 import pytest
-
-
 from sql_to_pandas import sql_to_pandas
 
 
