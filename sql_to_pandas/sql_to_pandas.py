@@ -41,10 +41,26 @@ class SQLtoPD:
         """Parses the SQL string into pandas and returns its results onto the DataFrame"""
         self._is_valid_sql(df=df, string=string)
 
+        # Turn the string to lowercase and split into an array for processing
+
         string = string.lower().split()
+        # Determine initial querying conditions (columns)
         if string[0] == 'select':
             if string[1] == '*':
                 pass 
             else:
-                df = df[[string[1]]]
+                cols = []
+                i = 1
+                # Iterate through all columns being requested
+                while string[i] != 'from':
+                    cols.append(string[i])
+                    i += 1
+
+                # Clean commas from columns
+                for idx, item in enumerate(cols):
+                    if item[-1] == ',':
+                        cols[idx] = item[:-1]
+                df = df[cols]
+        # start_of_rows_query = string[string.index('where') + 1]
+        # i = 1
         return df
