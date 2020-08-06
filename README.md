@@ -17,7 +17,7 @@ Example usage:
 1  4  5  6
 2  7  8  9
 
->>> spd.query(df, 'SELECT a from df')
+>>> spd.query(df, 'SELECT a FROM df')
    a
 0  1
 1  4
