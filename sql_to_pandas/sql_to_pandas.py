@@ -111,8 +111,8 @@ class SQLtoPD:
         df_literal_name = f'{df=}'.split('=')[0]
 
         operator_str = ''
-        print('SPLIT CONDITIONS:', split_conditions)
         idx = 0
+
         while idx < len(split_conditions) - 1:
             col = ''
             op = ''
@@ -134,12 +134,10 @@ class SQLtoPD:
                 operator_str += ' ({}[\'{}\']{}{}) {}'.format(df_literal_name, col, cond, cond_val, op)
             
             idx += 4
+
         operator_str += ']'
 
-        print(operator_str)
-        df = eval(operator_str)
-
-        return df
+        return eval(operator_str)
 
     def parse(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses the SQL string into pandas and returns its results onto the DataFrame"""
