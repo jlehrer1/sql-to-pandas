@@ -12,19 +12,24 @@ Example usage:
 ```python3
 >>> import sqltopandas
 >>> spd = sqltopandas.SQLtoPD()
->>> df = pd.DataFrame(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
-                   columns=['a', 'b', 'c'])
+>>> df = pd.DataFrame(np.array([[1, 1, 3], [5, 5, 6], [7, 8, 9]]),columns=['a', 'b', 'c'])
 >>> df
    a  b  c
-0  1  2  3
-1  4  5  6
+0  1  1  3
+1  5  5  6
 2  7  8  9
+>>> spd.parse(df, 'SELECT a, b, c FROM df')
+   a  b
+0  1  1
+1  5  5
+2  7  8
 
->>> spd.query(df, 'SELECT a FROM df')
-   a
-0  1
-1  4
-2  7
+>>> spd.parse(df, """SELECT a, b, c FROM df
+...                  WHERE a!=1
+...               """)
+   a  b
+1  5  5
+2  7  8
 
 ```
 
