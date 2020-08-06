@@ -36,15 +36,7 @@ class SQLtoPD:
             if possible_col not in df.columns.to_list():
                 raise ValueError('Error: {} column not found'.format(possible_col))
         
-
-    def parse(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
-        """Parses the SQL string into pandas and returns its results onto the DataFrame"""
-        self._is_valid_sql(df=df, string=string)
-
-        # Turn the string to lowercase and split into an array for processing
-
-        string = string.lower().split()
-        # Determine initial querying conditions (columns)
+    def _parse_columns(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         if string[0] == 'select':
             if string[1] == '*':
                 pass 
@@ -61,6 +53,23 @@ class SQLtoPD:
                     if item[-1] == ',':
                         cols[idx] = item[:-1]
                 df = df[cols]
-        # start_of_rows_query = string[string.index('where') + 1]
-        # i = 1
         return df
+
+    def _parse_rows(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
+        return df
+
+    def parse(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
+        """Parses the SQL string into pandas and returns its results onto the DataFrame"""
+        self._is_valid_sql(df=df, string=string)
+
+        # Turn the string to lowercase and split into an array for processing
+        string_split = string.lower().split()
+        
+        # Parse columns
+        df = self._parse_columns(df, string_split)
+
+        # Parse rows
+        df = self._parse_rows(df, string_split)
+
+        return df
+
