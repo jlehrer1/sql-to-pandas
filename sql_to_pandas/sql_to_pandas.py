@@ -2,8 +2,9 @@
 
 import pandas as pd
 import sqlite3
+import sys, os
 
-from . import keywords as k
+from .keywords import _get_sql_keywords
 
 class SQLtoPD:
     def __init__(self, strict=True):
@@ -12,7 +13,7 @@ class SQLtoPD:
     def _is_valid_sql(self, df: pd.DataFrame, string: str):
         """Checks if the given SQL query is valid SQL syntactically."""
         # Get list of SQL reserved keywords
-        keywords = k._get_sql_keywords()
+        keywords = _get_sql_keywords()
 
         # Split the string so each word can be parsed
         string = string.split()
@@ -36,12 +37,14 @@ class SQLtoPD:
                 raise ValueError('Error: {} column not found'.format(possible_col))
         
 
-
-
-
-
     def parse(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses the SQL string into pandas and returns its results onto the DataFrame"""
-        
-        self._is_valid_sql(df, string)
+        self._is_valid_sql(df=df, string=string)
 
+        string = string.lower().split()
+        if string[0] == 'select':
+            if string[1] == '*':
+                pass 
+            else:
+                df = df[[string[1]]]
+        return df
