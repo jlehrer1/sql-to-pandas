@@ -1,0 +1,34 @@
+name: sqltopandas
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - ca-certificates=2020.6.20=hecda079_0
+  - certifi=2020.6.20=py38h32f6830_0
+  - libblas=3.8.0=17_openblas
+  - libcblas=3.8.0=17_openblas
+  - libcxx=10.0.1=h5f48129_0
+  - libffi=3.2.1=h4a8c4bd_1007
+  - libgfortran=4.0.0=2
+  - liblapack=3.8.0=17_openblas
+  - libopenblas=0.3.10=openmp_h63d9170_4
+  - llvm-openmp=10.0.1=h28b9765_0
+  - ncurses=6.2=hb1e8313_1
+  - numpy=1.19.1=py38h598c1e0_0
+  - openssl=1.1.1g=h0b31af3_1
+  - pandas=1.1.0=py38h11c0d25_0
+  - pip=20.2.1=py_0
+  - python=3.8.5=h85f3143_2_cpython
+  - python-dateutil=2.8.1=py_0
+  - python_abi=3.8=1_cp38
+  - pytz=2020.1=pyh9f0ad1d_0
+  - readline=8.0=h0678c8f_2
+  - setuptools=49.2.1=py38h32f6830_0
+  - six=1.15.0=pyh9f0ad1d_0
+  - sqlite=3.32.3=h93121df_1
+  - tk=8.6.10=hbbe82c9_0
+  - wheel=0.34.2=py_1
+  - xz=5.2.5=h0b31af3_1
+  - zlib=1.2.11=h0b31af3_1006
+prefix: /Users/julian/opt/miniconda3/envs/sqltopandas
+
