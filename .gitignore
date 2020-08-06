@@ -106,4 +106,5 @@ ENV/
 
 # IDE settings
 .vscode/
-test.ipynb
+test.*
+.test.*
