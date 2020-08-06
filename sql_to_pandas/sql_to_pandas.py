@@ -78,17 +78,14 @@ class SQLtoPD:
         if 'where' not in string:
             return df
 
-        keywords = _get_sql_keywords()
-        start_parse_location = string.index('where') + 1
-        i = start_parse_location
-
-        # Make sure we're still parsing
-        conditions = []
-
         ok_logical_ops = {'and':'&', 'or':'|'}
         numerical_logical_ops = {'!=' : '!=', '<=' : '<=', '>=' : '>=', '>':'>', '<':'<', '=':'=='}
 
-        while string[i] not in list(set(keywords).difference(set(ok_logical_ops.keys()))) and i != len(string) - 1:
+        i = string.index('where') + 1
+        conditions = []
+        
+        # Grab 
+        while i != len(string):
             conditions.append(string[i])
             i += 1
 
@@ -128,6 +125,7 @@ class SQLtoPD:
                 except IndexError:
                     op = ''
 
+            # Build up df selection using logical operators
             if idx == 0:
                 operator_str += '{}.loc[({}[\'{}\']{}{}) {}'.format(df_literal_name, df_literal_name, col, cond, cond_val, op)
             else:
@@ -137,13 +135,50 @@ class SQLtoPD:
 
         operator_str += ']'
 
+        # Then parse it as a Python statement and return the result
         return eval(operator_str)
 
     def parse(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
-        """Parses the SQL string into pandas and returns its results onto the DataFrame"""
+        """
+        Parses the SQL string into Pandas and returns its results onto the DataFrame
+        
+        Parameters:
+        ----------
+        df: pd.DataFrame
+            The DataFrame to make the SQL query on
+        string: str
+            The SQL query as a string
+
+        Returns:
+        ---------
+        df: pd.DataFrame
+            The DataFrame after the SQL query has been made
+            
+        Example:
+        >>> import sqltopandas
+        >>> spd = sqltopandas.SQLtoPD()
+        >>> df = pd.DataFrame(np.array([[1, 1, 3], [5, 5, 6], [7, 8, 9]]),columns=['a', 'b', 'c'])
+        >>> df
+        a  b  c
+        0  1  1  3
+        1  5  5  6
+        2  7  8  9
+        >>> spd.parse(df, 'SELECT a, b, c FROM df')
+        a  b
+        0  1  1
+        1  5  5
+        2  7  8
+
+        >>> spd.parse(df, 'SELECT a, b, c FROM df
+        ...                WHERE a!=1')
+        a  b
+        1  5  5
+        2  7  8
+        """
 
         # Turn the string to lowercase and split into an array for processing
         string_split = re.findall(r'\S+|\n', string.lower())
+        print('top level string:', string_split)
 
         # Make sure SQL is valid
         self._is_valid_sql(df=df, string=string_split)
