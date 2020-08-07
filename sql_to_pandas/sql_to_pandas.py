@@ -3,6 +3,7 @@
 import pandas as pd
 import sqlite3
 import re
+import sqlparse 
 
 from .keywords import _get_sql_keywords
 
@@ -15,7 +16,6 @@ class SQLtoPD:
         # Get list of SQL reserved keywords
         keywords = _get_sql_keywords()
         return string in keywords
-
 
     def _is_valid_sql(self, df: pd.DataFrame, string: str):
         """Checks if the given SQL query is valid SQL syntactically."""
@@ -34,17 +34,17 @@ class SQLtoPD:
             raise ValueError(
                 'Error: The DataFrame name is incorrect. Please use the literal variable name in referencing it, or see the documentation for more help')
 
-    
     def _clean_listlike(self, string: str) -> list:
         """Removes commas from SQL list-like things, used in parsing SELECT statements. i,e id, number --> ['id', 'number'] """
+        string = string.split()
         cols = []
-        i = 1
+        i = string.index('select') + 1
 
         # Iterate through all columns being requested
-        while string[i] != '\n' and string[i + 1] != 'from':
+        while string[i] != 'from':
             cols.append(string[i])
             i += 1
-
+        
         # Clean commas from column list styling in SQL
         for idx, item in enumerate(cols):
             # Check if item is in list, or if user adds ; to the end of the query
@@ -60,15 +60,16 @@ class SQLtoPD:
             cols = df.columns.to_list()
         else:
             cols = self._clean_listlike(string)
-        return cols
+        return df[cols]
 
     def _parse_WHERE(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses which rows to use from the DataFrame. Runs in place of WHERE <condition>"""
-        
+        string = string.split()
+
         # If there is no row select condition return out and continue
         if 'where' not in string:
             return df
-        
+
         # Get the columns and literal name for building up the string to eval()
         df_cols = df.columns.to_list()
         df_literal_name = f'{df=}'.split('=')[0]
@@ -109,26 +110,20 @@ class SQLtoPD:
                     break
         
         # And remove all newlines from end of the list
-        i = 0
-        rev = split_conditions[::-1]
 
-        for item in rev:
-            if item == '\n':
-                i += 1
-            else:
-                break
-
-        split_conditions = split_conditions[:-i]
-
-        num_and_or_ops_in_splt = sum([split_conditions.count(item) for item in and_or_ops])
-        num_cols_in_splt = sum([split_conditions.count(item) for item in df_cols])
+        num_and_or_ops_in_splt = sum(
+            [split_conditions.count(item) for item in and_or_ops])
+        num_cols_in_splt = sum([split_conditions.count(item)
+                                for item in df_cols])
 
         if num_cols_in_splt - num_and_or_ops_in_splt < 1:
-            raise RuntimeError('Error: incorrect number of logical operators (AND/OR) in WHERE statement.')
-        
+            raise RuntimeError(
+                'Error: incorrect number of logical operators (AND/OR) in WHERE statement.')
+
         if num_cols_in_splt - num_and_or_ops_in_splt > 1:
-            raise RuntimeError('Error: incorrect number of columns when filtering in WHERE statement.')
-        
+            raise RuntimeError(
+                'Error: incorrect number of columns when filtering in WHERE statement.')
+
         operator_str = ''
         idx = 0
 
@@ -151,7 +146,7 @@ class SQLtoPD:
                 col = split_conditions[idx]
                 cond_val = split_conditions[idx + 1]
                 cond = numerical_logical_ops[split_conditions[idx + 2]]
-                
+
                 try:
                     op = and_or_ops[split_conditions[idx + 3]]
                 except IndexError:
@@ -159,8 +154,9 @@ class SQLtoPD:
 
             # Make sure column name is in the list of selected columns
             if col not in df.columns:
-                raise KeyError('Error: column \'{}\' not found in selected columns'.format(split_conditions[idx]))
-            
+                raise KeyError('Error: column \'{}\' not found in selected columns'.format(
+                    split_conditions[idx]))
+
             # Make sure there are the correct number of logical operators in relation to the number of conditions
 
             # Build up df selection using logical operators
@@ -173,8 +169,9 @@ class SQLtoPD:
 
             idx += 4
 
-        operator_str += ']'
+        operator_str += ', :]'
 
+        print(operator_str)
         # Then parse it as a Python statement and return the result
         return eval(operator_str)
 
@@ -217,19 +214,35 @@ class SQLtoPD:
         2  7  8
         """
 
+        # SQL statements are categorized into four different types of statements, which are
+
+        # DML (DATA MANIPULATION LANGUAGE)
+        # DDL (DATA DEFINITION LANGUAGE)
+        # DCL (DATA CONTROL LANGUAGE)
+        # TCL (TRANSACTION CONTROL LANGUAGE)
+
+        DML_mapping = {
+            'select' : self._parse_SELECT,
+            'where' : self._parse_WHERE,
+        }
+
+        DDL_mapping = {
+
+        }
+
         # Turn the string to lowercase and split into an array for processing
-        string_split = re.findall(r'\S+|\n', string.lower())
+        string_split = sqlparse.split(string.lower())
+        
+        # Remove all empty strings (newlines processed etc)
+        string_split = list(filter(None, string_split))
 
-        # Make sure SQL is valid
-        self._is_valid_sql(df=df, string=string_split)
+        # Remove ; from end of each statement
+        string_split = [word[:-1] for word in string_split]
 
-        # Parse columns
-        cols = self._parse_SELECT(df=df, string=string_split)
-
-        # Filter the used columns and pass the DataFrame down
-        df = df[cols]
-
-        # Parse rows
-        df = self._parse_WHERE(df=df, string=string_split)
-
+        # First word of each SQL statement so we can know how to process it 
+        first_words = [word.split(' ')[0] for word in string_split]
+        
+        for idx, w in enumerate(first_words):
+            df = DML_mapping[w](df=df, string=string_split[idx])
+        
         return df
