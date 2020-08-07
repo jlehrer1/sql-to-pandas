@@ -18,13 +18,13 @@ Example usage:
 0  1  1  3
 1  5  5  6
 2  7  8  9
->>> spd.parse(df, 'SELECT a, b, c FROM df')
+>>> spd.parse(df, 'SELECT a, b FROM df')
    a  b
 0  1  1
 1  5  5
 2  7  8
 
->>> spd.parse(df, """SELECT a, b, c FROM df;
+>>> spd.parse(df, """SELECT a, b FROM df;
 ...                  WHERE a!=1""")
    a  b
 1  5  5
