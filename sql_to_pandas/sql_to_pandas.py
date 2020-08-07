@@ -78,13 +78,23 @@ class SQLtoPD:
         if 'where' not in string:
             return df
 
-        ok_logical_ops = {'and':'&', 'or':'|'}
-        numerical_logical_ops = {'!=' : '!=', '<=' : '<=', '>=' : '>=', '>':'>', '<':'<', '=':'=='}
+        ok_logical_ops = {
+            'and': '&',
+            'or': '|'
+        }
+
+        numerical_logical_ops = {
+            '!=': '!=',
+            '<=': '<=',
+            '>=': '>=',
+            '>': '>',
+            '<': '<',
+            '=': '=='
+        }
 
         i = string.index('where') + 1
         conditions = []
-        
-        # Grab 
+
         while i != len(string):
             conditions.append(string[i])
             i += 1
@@ -100,9 +110,8 @@ class SQLtoPD:
                         split_conditions.append(spl)
                     split_conditions.append(op)
                     if word_idx != len(conditions) - 1:
-                        split_conditions.append(conditions[word_idx + 1]) 
+                        split_conditions.append(conditions[word_idx + 1])
                     break
-        
 
         df_cols = df.columns.to_list()
         df_literal_name = f'{df=}'.split('=')[0]
@@ -115,22 +124,24 @@ class SQLtoPD:
             op = ''
             cond = ''
             cond_val = ''
-         
+
             if split_conditions[idx] in df_cols:
                 col = split_conditions[idx]
                 cond_val = split_conditions[idx + 1]
                 cond = numerical_logical_ops[split_conditions[idx + 2]]
-                try: 
+                try:
                     op = ok_logical_ops[split_conditions[idx + 3]]
                 except IndexError:
                     op = ''
 
             # Build up df selection using logical operators
             if idx == 0:
-                operator_str += '{}.loc[({}[\'{}\']{}{}) {}'.format(df_literal_name, df_literal_name, col, cond, cond_val, op)
+                operator_str += '{}.loc[({}[\'{}\']{}{}) {}'.format(
+                    df_literal_name, df_literal_name, col, cond, cond_val, op)
             else:
-                operator_str += ' ({}[\'{}\']{}{}) {}'.format(df_literal_name, col, cond, cond_val, op)
-            
+                operator_str += ' ({}[\'{}\']{}{}) {}'.format(
+                    df_literal_name, col, cond, cond_val, op)
+
             idx += 4
 
         operator_str += ']'
@@ -141,7 +152,7 @@ class SQLtoPD:
     def parse(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """
         Parses the SQL string into Pandas and returns its results onto the DataFrame
-        
+
         Parameters:
         ----------
         df: pd.DataFrame
@@ -153,7 +164,7 @@ class SQLtoPD:
         ---------
         df: pd.DataFrame
             The DataFrame after the SQL query has been made
-            
+
         Example:
         >>> import sqltopandas
         >>> spd = sqltopandas.SQLtoPD()
@@ -178,7 +189,6 @@ class SQLtoPD:
 
         # Turn the string to lowercase and split into an array for processing
         string_split = re.findall(r'\S+|\n', string.lower())
-        print('top level string:', string_split)
 
         # Make sure SQL is valid
         self._is_valid_sql(df=df, string=string_split)
