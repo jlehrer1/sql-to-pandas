@@ -17,52 +17,57 @@ class SQLtoPD:
         keywords = _get_sql_keywords()
         return string in keywords
 
-    def _is_valid_sql(self, df: pd.DataFrame, string: str):
-        """Checks if the given SQL query is valid SQL syntactically."""
+    # def _is_valid_sql(self, df: pd.DataFrame, string: str):
+    #     """Checks if the given SQL query is valid SQL syntactically."""
 
-        # Extract the not sql keywords (computationally expensive!)
-        not_sql_words = [
-            word for word in string if not self._issqlkeyword(word.upper())]
+    #     # Extract the not sql keywords (computationally expensive!)
+    #     not_sql_words = [
+    #         word for word in string if not self._issqlkeyword(word.upper())]
 
-        # Then use set differencing to get the keywords
-        sql_words = list(set(string).difference(set(not_sql_words)))
-        sql_words = [word.lower() for word in sql_words]
+    #     # Then use set differencing to get the keywords
+    #     sql_words = list(set(string).difference(set(not_sql_words)))
+    #     sql_words = [word.lower() for word in sql_words]
 
-        # Check if dataframe name is in the word list (DEBUG THIS FIRST)
-        df_literal_name = f'{df=}'.split('=')[0]
-        if df_literal_name not in not_sql_words:
-            raise ValueError(
-                'Error: The DataFrame name is incorrect. Please use the literal variable name in referencing it, or see the documentation for more help')
+    #     # Check if dataframe name is in the word list (DEBUG THIS FIRST)
+    #     df_literal_name = f'{df=}'.split('=')[0]
+    #     if df_literal_name not in not_sql_words:
+    #         raise ValueError(
+    #             'Error: The DataFrame name is incorrect. Please use the literal variable name in referencing it, or see the documentation for more help')
 
     def _clean_listlike(self, string: str) -> list:
-        """Removes commas from SQL list-like things, used in parsing SELECT statements. i,e id, number --> ['id', 'number'] """
-        string = string.split()
+        """Removes commas and semicolons from SQL list-like things. i,e id, number --> ['id', 'number'] """
         cols = []
-        i = string.index('select') + 1
-
-        # Iterate through all columns being requested
-        while string[i] != 'from':
-            cols.append(string[i])
-            i += 1
-        
-        # Clean commas from column list styling in SQL
-        for idx, item in enumerate(cols):
+        for idx, item in enumerate(string):
             # Check if item is in list, or if user adds ; to the end of the query
             if item[-1] == ',' or item[-1] == ';' or item[-1] == '\n':
-                cols[idx] = item[:-1]
+                cols.append(item[:-1])
+            else:
+                cols.append(item)
 
         return cols
 
     def _parse_LIMIT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses the LIMIT statement from SQL"""
-        return df.head(string[1])
+        return df.head(int(string[1]))
         
 
     def _parse_ORDER_BY(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
-        pass
-    
-    def _parse_LIMIT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
-        pass
+        """Parses SQL ORDER BY <column> ASC/DEC"""
+        # Remove 'order', 'by'
+        string = string[2:]
+        if string[-1] == 'desc':
+            df = df.sort_values(by=[col for col in self._clean_listlike(string[:-1])], ascending=False)
+        else:
+            if string[-1] == 'asc':
+                df = df.sort_values(axis=1, by=[col for col in self._clean_listlike(string[:-1])], ascending=True)
+            else:
+                df = df.sort_values(axis=1, by=[col for col in self._clean_listlike(string)], ascending=True)
+
+        return df
+
+
+    # def _parse_LIMIT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
+    #     return df
 
 
     def _parse_SELECT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
@@ -71,12 +76,14 @@ class SQLtoPD:
         if string[1] == '*':
             cols = df.columns.to_list()
         else:
+            string = string[string.index('select') + 1: string.index('from')]
             cols = self._clean_listlike(string)
+        
         return df[cols]
 
     def _parse_WHERE(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses which rows to use from the DataFrame. Runs in place of WHERE <condition>"""
-        string = string.split()
+        # string = string.split()
 
         # If there is no row select condition return out and continue
         if 'where' not in string:
@@ -255,8 +262,8 @@ class SQLtoPD:
         # First word of each SQL statement so we can know how to process it 
         first_words = [word.split(' ')[0] for word in string_split]
         
-        # call each function with its corresponding SQL statement
+        # call each function with its corresponding SQL statement   
         for idx, w in enumerate(first_words):
-            df = DML_mapping[w](df=df, string=string_split[idx])
+            df = DML_mapping[w](df=df, string=string_split[idx].split())
         
         return df
