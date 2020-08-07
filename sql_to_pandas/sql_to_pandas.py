@@ -34,19 +34,6 @@ class SQLtoPD:
             raise ValueError(
                 'Error: The DataFrame name is incorrect. Please use the literal variable name in referencing it, or see the documentation for more help')
 
-        # Make sure "WHERE <condition>" is matching in the dataframe columns
-        if 'where' in sql_words:
-            # String one after "WHERE"
-            possible_col_idx = string.index('where') + 1
-
-            ok_logical_ops = ['and', 'or']
-            not_logical_sql_keywords = list(
-                set(sql_words).difference(set(ok_logical_ops)))
-
-            # while string[i]
-
-            # if possible_col not in df.columns.to_list():
-            #     raise ValueError('Error: {} column not found'.format(possible_col))
     
     def _clean_listlike(self, string: str) -> list:
         """Removes commas from SQL list-like things, used in parsing SELECT statements. i,e id, number --> ['id', 'number'] """

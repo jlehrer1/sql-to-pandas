@@ -33,5 +33,8 @@ Example usage:
 
 ```
 
+## Obvious edge cases 
+DataFrame column names, as well as DataFrame names, cannot be SQL keywords. For example, a column name with "SELECT" or "select" will throw an error.
+
 ## Contributing:
 If you have read this far I hope you've found this tool useful. I am always looking to learn more and develop as a programmer, so if you have any ideas or contributions, feel free to write a feature or pull request. 
