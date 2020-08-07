@@ -7,7 +7,6 @@ import sqlparse
 
 from .keywords import _get_sql_keywords
 
-
 class SQLtoPD:
     def __init__(self, strict=True):
         self.strict = strict
@@ -17,27 +16,10 @@ class SQLtoPD:
         keywords = _get_sql_keywords()
         return string in keywords
 
-    # def _is_valid_sql(self, df: pd.DataFrame, string: str):
-    #     """Checks if the given SQL query is valid SQL syntactically."""
-
-    #     # Extract the not sql keywords (computationally expensive!)
-    #     not_sql_words = [
-    #         word for word in string if not self._issqlkeyword(word.upper())]
-
-    #     # Then use set differencing to get the keywords
-    #     sql_words = list(set(string).difference(set(not_sql_words)))
-    #     sql_words = [word.lower() for word in sql_words]
-
-    #     # Check if dataframe name is in the word list (DEBUG THIS FIRST)
-    #     df_literal_name = f'{df=}'.split('=')[0]
-    #     if df_literal_name not in not_sql_words:
-    #         raise ValueError(
-    #             'Error: The DataFrame name is incorrect. Please use the literal variable name in referencing it, or see the documentation for more help')
-
     def _clean_listlike(self, string: str) -> list:
         """Removes commas and semicolons from SQL list-like things. i,e id, number --> ['id', 'number'] """
         cols = []
-        for idx, item in enumerate(string):
+        for item in string:
             # Check if item is in list, or if user adds ; to the end of the query
             if item[-1] == ',' or item[-1] == ';' or item[-1] == '\n':
                 cols.append(item[:-1])
@@ -54,20 +36,19 @@ class SQLtoPD:
     def _parse_ORDER_BY(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses SQL ORDER BY <column> ASC/DEC"""
         # Remove 'order', 'by'
+        is_asc = True
         string = string[2:]
+
         if string[-1] == 'desc':
-            df = df.sort_values(by=[col for col in self._clean_listlike(string[:-1])], ascending=False)
+            is_asc = False
+            string = string[:-1]
         else:
             if string[-1] == 'asc':
-                df = df.sort_values(axis=1, by=[col for col in self._clean_listlike(string[:-1])], ascending=True)
-            else:
-                df = df.sort_values(axis=1, by=[col for col in self._clean_listlike(string)], ascending=True)
+                string = string[:-1]
 
-        return df
+        ordered_cols = self._clean_listlike(string)
 
-
-    # def _parse_LIMIT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
-    #     return df
+        return df.sort_values(by=ordered_cols, ascending=is_asc)
 
 
     def _parse_SELECT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
@@ -239,6 +220,7 @@ class SQLtoPD:
         # DCL (DATA CONTROL LANGUAGE)
         # TCL (TRANSACTION CONTROL LANGUAGE)
 
+        # All currently handled SQL methods
         DML_mapping = {
             'select' : self._parse_SELECT,
             'where' : self._parse_WHERE,
