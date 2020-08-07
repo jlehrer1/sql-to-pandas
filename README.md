@@ -1,11 +1,13 @@
-# SQLtoPandas: 
+# SQLtoPandas (WIP):
 
 Use SQL queries on Pandas DataFrames.
 
 Are you comfortable with SQL but not Pandas? Or maybe you're comfortable with Pandas but not SQL? Well, this library allows querying of Pandas DataFrames using SQL syntax. Hopefully it will let you learn SQL if you already understand Pandas, or learn how Pandas DataFrames behave if you already know SQL. 
 
-## Requirements and Information: 
-Install all required packages through `pip` when it's released, or generate the `conda` dev environment with `conda create --file environment.yml`, and activate with `conda active sqltopandas`. This *does* require Python 3.8 because getting variable literal names with f-string debugging is a critical part of the code infrastructure. I don't think there is a nice way to make that backwards compatible, sadly. 
+Unlike [pandasql](https://github.com/yhat/pandasql), this package does not create a local sqlite3 data on the users computer and query from that. Rather, it converts SQL commands directly into pandas code.
+
+## Requirements: 
+Install all required dependencies through `pip` when this package is released, or generate the `conda` dev environment with `conda create --file environment.yml`, and activate with `conda active sqltopandas`. This *does* require Python 3.8 because getting variable literal names with f-string debugging is a critical part of the code infrastructure. I don't think there is a nice way to make that backwards compatible, sadly. 
 
 ## Usage:
 Example usage:
