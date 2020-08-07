@@ -5,34 +5,17 @@ import sqlite3
 import re
 import sqlparse 
 
-from .keywords import _get_sql_keywords
+from .select import select
+from .helpers import helpers
 
 class SQLtoPD:
     def __init__(self, strict=True):
         self.strict = strict
 
-    def _issqlkeyword(self, string: str) -> bool:
-        # Get list of SQL reserved keywords
-        keywords = _get_sql_keywords()
-        return string in keywords
-
-    def _clean_listlike(self, string: str) -> list:
-        """Removes commas and semicolons from SQL list-like things. i,e id, number --> ['id', 'number'] """
-        cols = []
-        for item in string:
-            # Check if item is in list, or if user adds ; to the end of the query
-            if item[-1] == ',' or item[-1] == ';' or item[-1] == '\n':
-                cols.append(item[:-1])
-            else:
-                cols.append(item)
-
-        return cols
-
     def _parse_LIMIT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses the LIMIT statement from SQL"""
         return df.head(int(string[1]))
         
-
     def _parse_ORDER_BY(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses SQL ORDER BY <column> ASC/DEC"""
         # Remove 'order', 'by'
@@ -46,21 +29,22 @@ class SQLtoPD:
             if string[-1] == 'asc':
                 string = string[:-1]
 
-        ordered_cols = self._clean_listlike(string)
+        ordered_cols = helpers._clean_listlike(string)
 
         return df.sort_values(by=ordered_cols, ascending=is_asc)
 
 
-    def _parse_SELECT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
-        """Parses which columns to use from the DataFrame. Runs in place of SELECT <cols> FROM <df>"""
-        cols = []
-        if string[1] == '*':
-            cols = df.columns.to_list()
-        else:
-            string = string[string.index('select') + 1: string.index('from')]
-            cols = self._clean_listlike(string)
+    # def _parse_SELECT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
+    #     """Parses which columns to use from the DataFrame. Runs in place of SELECT <cols> FROM <df>"""
+    #     # cols = []
+    #     # if string[1] == '*':
+    #     #     cols = df.columns.to_list()
+    #     # else:
+    #     #     string = string[string.index('select') + 1: string.index('from')]
+    #     #     cols = self._clean_listlike(string)
         
-        return df[cols]
+    #     # return df[cols]
+    #     return select._parse_SELECT(df=df, string=string)
 
     def _parse_WHERE(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses which rows to use from the DataFrame. Runs in place of WHERE <condition>"""
@@ -222,14 +206,14 @@ class SQLtoPD:
 
         # All currently handled SQL methods
         DML_mapping = {
-            'select' : self._parse_SELECT,
+            'select' : select._parse_SELECT,
             'where' : self._parse_WHERE,
             'order' : self._parse_ORDER_BY,
             'limit' : self._parse_LIMIT,
         }
 
         DDL_mapping = {
-
+            
         }
 
         # Turn the string to lowercase and split into an array for processing
@@ -239,7 +223,7 @@ class SQLtoPD:
         string_split = list(filter(None, string_split))
 
         # Remove ; from end of each statement
-        string_split = [word[:-1] for word in string_split]
+        string_split = [word[:-1] if word[-1] == ';' else word for word in string_split]
 
         # First word of each SQL statement so we can know how to process it 
         first_words = [word.split(' ')[0] for word in string_split]
