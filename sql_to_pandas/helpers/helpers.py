@@ -3,9 +3,18 @@
 import pandas as pd 
 from .keywords import KEYWORDS
 
+LOGICAL_SQL_OPS = ['AND', 'OR']
+NONLOGICAL_OPS = list(set(KEYWORDS).difference(set(LOGICAL_SQL_OPS)))
+
 def _get_sql_keywords():
     """Returns a list containing all SQL keywords"""
     return KEYWORDS
+
+def _is_logical_sql_keyword(string: str) -> bool:
+    return string in LOGICAL_SQL_OPS
+
+def _is_nonlogical_sql_keyword(string: str) -> bool:
+    return string in NONLOGICAL_OPS
 
 def _issqlkeyword(string: str) -> bool:
     """Returns if a given string (word) is a SQL keyword"""

@@ -26,15 +26,15 @@ Example usage:
 1  5  5
 2  7  8
 
->>> spd.parse(df, """SELECT a, b FROM df;
-...                  WHERE a!=1""")
+>>> spd.parse(df, """SELECT a, b FROM df
+...                  WHERE a!=1; """)
    a  b
 1  5  5
 2  7  8
 
 >>> spd.parse(df, """SELECT a, b, c FROM df;
-... 		         ORDER BY a DESC;
-...           		 LIMIT 2;""")
+... 		            ORDER BY a DESC;
+...           		   LIMIT 2;""")
    a  b  c
 2  7  8  9
 1  5  5  6
@@ -45,6 +45,7 @@ Example usage:
 DataFrame column names, as well as DataFrame names, cannot be SQL keywords. For example, a column name with "SELECT" or "select" will throw an error.
 
 ## Syntactical Rules
-SQL tends to be quite lax with syntax. However, this library is not. *Each SQL statement must end with a `;`*. If it does not, it will not be parsed correctly. For example, `SELECT ... FROM ...;` is one statement, as we define wwhich columns to select and which DataFrame to select them from. The documentation will provide a strict guideline for what consitutes a statement. 
+SQL tends to be quite lax with syntax. However, this library is not. *Each SQL statement must end with a `;`*. If it does not, it will not be parsed correctly. For example, `SELECT ... FROM ... WHERE;` is one statement, as we define which columns and rows to select, which DataFrame to select them from. Think of each statement as being a complete mathematical expression. `SELECT ... FROM ...; WHERE ...;` is an incorrect statement because `WHERE` does not have a reference. This rules may change as the package is updated, so visit [this](https://github.com/jlehrer1/sql-to-pandas) page for the most updated documentation.
+
 ## Contributing:
 If you have read this far I hope you've found this tool useful. I am always looking to learn more and develop as a programmer, so if you have any ideas or contributions, feel free to write a feature or pull request. 

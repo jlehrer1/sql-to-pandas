@@ -1,9 +1,10 @@
 import pandas as pd
+from ..helpers import helpers
 
 def _parse_WHERE(df: pd.DataFrame, string: str) -> pd.DataFrame:
     """Parses which rows to use from the DataFrame. Runs in place of WHERE <condition>"""
 
-    print('WHERE STRING IS:', string)
+    print('String coming to where is: ', string)
     # Get the columns and literal name for building up the string to eval()
     df_cols = df.columns.to_list()
     df_literal_name = f'{df=}'.split('=')[0]
@@ -25,7 +26,8 @@ def _parse_WHERE(df: pd.DataFrame, string: str) -> pd.DataFrame:
     i = string.index('where') + 1
     conditions = []
 
-    while i != len(string):
+    # Build up conditions until end of statement
+    while i != len(string) and not helpers._is_nonlogical_sql_keyword(string[i]):
         conditions.append(string[i])
         i += 1
 

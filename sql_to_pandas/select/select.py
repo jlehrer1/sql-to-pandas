@@ -16,8 +16,7 @@ def _SELECT_SUM(df: pd.DataFrame) -> pd.DataFrame:
 
 def _parse_SELECT(df: pd.DataFrame, string: str):
     """Parses which columns to use from the DataFrame. Runs in place of SELECT <cols> FROM <df>"""
-
-    print('SELECT STRING IS: ', string)
+    print('string coming to SELECT is:', string)
     option_map = {
         'count' : _SELECT_COUNT,
         'avg' : _SELECT_AVG,
@@ -29,6 +28,8 @@ def _parse_SELECT(df: pd.DataFrame, string: str):
 
     if checkstring in option_map.keys():
         df = where._parse_WHERE(df, string)
+        print('df in checkstring select')
+        print(df)
         # df = option_map[checkstring](df)
     else:
         cols = []

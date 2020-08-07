@@ -19,8 +19,12 @@ class SQLtoPD:
         
     def _parse_ORDER_BY(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses SQL ORDER BY <column> ASC/DEC"""
-        # Remove 'order', 'by'
         is_asc = True
+
+        if string[1] != 'by':
+            raise SyntaxError('Error: invalid syntax. Try ORDER BY <col> <ASC/DESC>.')
+        
+        # Remove 'order', 'by'
         string = string[2:]
 
         if string[-1] == 'desc':
