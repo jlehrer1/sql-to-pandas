@@ -16,22 +16,6 @@ class SQLtoPD:
         keywords = _get_sql_keywords()
         return string in keywords
 
-    def _clean_listlike(self, string: str) -> list:
-        """Removes commas from SQL list-like things, used in parsing SELECT statements. i,e id, number --> ['id', 'number'] """
-        cols = []
-        i = 1
-
-        # Iterate through all columns being requested
-        while string[i] != '\n' and string[i + 1] != 'from':
-            cols.append(string[i])
-            i += 1
-
-        # Clean commas from column list styling in SQL
-        for idx, item in enumerate(cols):
-            if item[-1] == ',':
-                cols[idx] = item[:-1]
-
-        return cols
 
     def _is_valid_sql(self, df: pd.DataFrame, string: str):
         """Checks if the given SQL query is valid SQL syntactically."""
@@ -54,6 +38,7 @@ class SQLtoPD:
         if 'where' in sql_words:
             # String one after "WHERE"
             possible_col_idx = string.index('where') + 1
+
             ok_logical_ops = ['and', 'or']
             not_logical_sql_keywords = list(
                 set(sql_words).difference(set(ok_logical_ops)))
@@ -62,23 +47,46 @@ class SQLtoPD:
 
             # if possible_col not in df.columns.to_list():
             #     raise ValueError('Error: {} column not found'.format(possible_col))
+    
+    def _clean_listlike(self, string: str) -> list:
+        """Removes commas from SQL list-like things, used in parsing SELECT statements. i,e id, number --> ['id', 'number'] """
+        cols = []
+        i = 1
+
+        # Iterate through all columns being requested
+        while string[i] != '\n' and string[i + 1] != 'from':
+            cols.append(string[i])
+            i += 1
+
+        # Clean commas from column list styling in SQL
+        for idx, item in enumerate(cols):
+            # Check if item is in list, or if user adds ; to the end of the query
+            if item[-1] == ',' or item[-1] == ';' or item[-1] == '\n':
+                cols[idx] = item[:-1]
+
+        return cols
 
     def _parse_SELECT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses which columns to use from the DataFrame. Runs in place of SELECT <cols> FROM <df>"""
+        cols = []
         if string[1] == '*':
-            pass
+            cols = df.columns.to_list()
         else:
             cols = self._clean_listlike(string)
-            df = df[cols]
-        return df
+        return cols
 
     def _parse_WHERE(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses which rows to use from the DataFrame. Runs in place of WHERE <condition>"""
+        
         # If there is no row select condition return out and continue
         if 'where' not in string:
             return df
+        
+        # Get the columns and literal name for building up the string to eval()
+        df_cols = df.columns.to_list()
+        df_literal_name = f'{df=}'.split('=')[0]
 
-        ok_logical_ops = {
+        and_or_ops = {
             'and': '&',
             'or': '|'
         }
@@ -112,27 +120,61 @@ class SQLtoPD:
                     if word_idx != len(conditions) - 1:
                         split_conditions.append(conditions[word_idx + 1])
                     break
+        
+        # And remove all newlines from end of the list
+        i = 0
+        rev = split_conditions[::-1]
 
-        df_cols = df.columns.to_list()
-        df_literal_name = f'{df=}'.split('=')[0]
+        for item in rev:
+            if item == '\n':
+                i += 1
+            else:
+                break
 
+        split_conditions = split_conditions[:-i]
+
+        num_and_or_ops_in_splt = sum([split_conditions.count(item) for item in and_or_ops])
+        num_cols_in_splt = sum([split_conditions.count(item) for item in df_cols])
+
+        if num_cols_in_splt - num_and_or_ops_in_splt < 1:
+            raise RuntimeError('Error: incorrect number of logical operators (AND/OR) in WHERE statement.')
+        
+        if num_cols_in_splt - num_and_or_ops_in_splt > 1:
+            raise RuntimeError('Error: incorrect number of columns when filtering in WHERE statement.')
+        
         operator_str = ''
         idx = 0
 
         while idx < len(split_conditions) - 1:
+            # df[(df[col]cond cond_val) op (...)]
+
+            # column to filter
             col = ''
+
+            # Pandas equivalent of AND / OR (& / |)
             op = ''
+
+            # The filter operator, like ==, <=, > etc
             cond = ''
+
+            # The filter value
             cond_val = ''
 
             if split_conditions[idx] in df_cols:
                 col = split_conditions[idx]
                 cond_val = split_conditions[idx + 1]
                 cond = numerical_logical_ops[split_conditions[idx + 2]]
+                
                 try:
-                    op = ok_logical_ops[split_conditions[idx + 3]]
+                    op = and_or_ops[split_conditions[idx + 3]]
                 except IndexError:
                     op = ''
+
+            # Make sure column name is in the list of selected columns
+            if col not in df.columns:
+                raise KeyError('Error: column \'{}\' not found in selected columns'.format(split_conditions[idx]))
+            
+            # Make sure there are the correct number of logical operators in relation to the number of conditions
 
             # Build up df selection using logical operators
             if idx == 0:
@@ -180,8 +222,9 @@ class SQLtoPD:
         1  5  5
         2  7  8
 
-        >>> spd.parse(df, 'SELECT a, b, c FROM df
-        ...                WHERE a!=1')
+        >>> spd.parse(df, \"\"\"SELECT a, b, c 
+                           FROM df
+        ...                WHERE a!=1\"\"\")
         a  b
         1  5  5
         2  7  8
@@ -194,7 +237,10 @@ class SQLtoPD:
         self._is_valid_sql(df=df, string=string_split)
 
         # Parse columns
-        df = self._parse_SELECT(df=df, string=string_split)
+        cols = self._parse_SELECT(df=df, string=string_split)
+
+        # Filter the used columns and pass the DataFrame down
+        df = df[cols]
 
         # Parse rows
         df = self._parse_WHERE(df=df, string=string_split)
