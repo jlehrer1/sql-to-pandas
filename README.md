@@ -25,11 +25,17 @@ Example usage:
 2  7  8
 
 >>> spd.parse(df, """SELECT a, b, c FROM df;
-...                  WHERE a!=1
-...               """)
+...                  WHERE a!=1""")
    a  b
 1  5  5
 2  7  8
+
+>>> spd.parse(df, """SELECT a, b, c FROM df;
+... 		         ORDER BY a DESC;
+...           		 LIMIT 2;""")
+   a  b  c
+2  7  8  9
+1  5  5  6
 
 ```
 
