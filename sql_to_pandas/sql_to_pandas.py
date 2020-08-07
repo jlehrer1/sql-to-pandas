@@ -53,6 +53,18 @@ class SQLtoPD:
 
         return cols
 
+    def _parse_LIMIT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
+        """Parses the LIMIT statement from SQL"""
+        return df.head(string[1])
+        
+
+    def _parse_ORDER_BY(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
+        pass
+    
+    def _parse_LIMIT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
+        pass
+
+
     def _parse_SELECT(self, df: pd.DataFrame, string: str) -> pd.DataFrame:
         """Parses which columns to use from the DataFrame. Runs in place of SELECT <cols> FROM <df>"""
         cols = []
@@ -171,7 +183,6 @@ class SQLtoPD:
 
         operator_str += ', :]'
 
-        print(operator_str)
         # Then parse it as a Python statement and return the result
         return eval(operator_str)
 
@@ -224,6 +235,8 @@ class SQLtoPD:
         DML_mapping = {
             'select' : self._parse_SELECT,
             'where' : self._parse_WHERE,
+            'order' : self._parse_ORDER_BY,
+            'limit' : self._parse_LIMIT,
         }
 
         DDL_mapping = {
@@ -242,6 +255,7 @@ class SQLtoPD:
         # First word of each SQL statement so we can know how to process it 
         first_words = [word.split(' ')[0] for word in string_split]
         
+        # call each function with its corresponding SQL statement
         for idx, w in enumerate(first_words):
             df = DML_mapping[w](df=df, string=string_split[idx])
         

@@ -24,7 +24,7 @@ Example usage:
 1  5  5
 2  7  8
 
->>> spd.parse(df, """SELECT a, b, c FROM df
+>>> spd.parse(df, """SELECT a, b, c FROM df;
 ...                  WHERE a!=1
 ...               """)
    a  b
@@ -36,5 +36,7 @@ Example usage:
 ## Obvious edge cases 
 DataFrame column names, as well as DataFrame names, cannot be SQL keywords. For example, a column name with "SELECT" or "select" will throw an error.
 
+## Syntactical Rules
+SQL tends to be quite lax with syntax. However, this library is not. *Each SQL statement must end with a `;`*. If it does not, it will not be parsed correctly. For example, `SELECT ... FROM ...;` is one statement, as we define wwhich columns to select and which DataFrame to select them from. The documentation will provide a strict guideline for what consitutes a statement. 
 ## Contributing:
 If you have read this far I hope you've found this tool useful. I am always looking to learn more and develop as a programmer, so if you have any ideas or contributions, feel free to write a feature or pull request. 
