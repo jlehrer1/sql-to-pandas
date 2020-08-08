@@ -39,6 +39,9 @@ Example usage:
 2  7  8  9
 1  5  5  6
 
+>>> spd.parse(df, """SELECT COUNT(a) FROM df
+...                  WHERE a=1 OR c=6; """)
+2
 ```
 
 ## Obvious edge cases 
