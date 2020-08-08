@@ -1,49 +1,44 @@
-#!/usr/bin/env python
+import pathlib
+from distutils.core import setup
+import setuptools
+from setuptools import find_packages
 
-"""The setup script."""
-from setuptools import setup, find_packages
+# The directory containing this file
+HERE = pathlib.Path(__file__).parent
 
-with open('README.md') as readme_file:
-    readme = readme_file.read()
-
-requirements = [ ]
-
-setup_requirements = ['pytest-runner', ]
-
-test_requirements = ['pytest>=3', ]
+# The text of the README file
+README = (HERE / "README.md").read_text()
 
 setup(
-    author="Julian Lehrer",
-    author_email='jmlehrer@ucsc.edu',
-    python_requires='>=3.5',
+    name='sqltopandas',         # How you named your package folder (MyLib)
+    packages=find_packages(exclude=("tests",)),  
+    version='0.01',      # Start with a small number and increase it with every change you make
+    # Chose a license from here: https://help.github.com/articles/licensing-a-repository
+    license='MIT',
+    description='Use SQL expressions to query Pandas DataFrames',
+    long_description=README,
+    long_description_content_type="text/markdown",
+    author='Julian Lehrer',                   # Type in your name
+    author_email='julianmlehrer@gmail.com',      # Type in your E-Mail
+    # Provide either the link to your github or to your website
+    url='https://github.com/jlehrer1/sql-to-pandas',
+    # Keywords that define your package best
+    keywords=['SQL', 'PYTHON', 'DATA SCIENCE', 'PANDAS', 'DATAFRAME'],
+    install_requires=[            # I get to this in a second
+        'numpy',
+        'pandas',
+        'numpy',
+        'sqlparse',
+        'pytest'
+    ],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
+        'Development Status :: 3 - Alpha',
+        # Define that your audience are developers
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        'Topic :: Software Development :: Build Tools',
+        'License :: OSI Approved :: MIT License',   # Again, pick a license
         'Programming Language :: Python :: 3.8',
     ],
-#   description="Convert sql queries to pandas",
-#
-#    entry_points={
-#        'console_scripts': [
-#            'sql_to_pandas=sql_to_pandas.cli:main',
-#        ],
-#    },
-#
-    install_requires=requirements,
-    license="MIT license",
-    long_description=readme + '\n\n' + history,
     include_package_data=True,
-    keywords='sql_to_pandas',
-    name='sql_to_pandas',
-    packages=find_packages(include=['sql_to_pandas', 'sql_to_pandas.*']),
-    setup_requires=setup_requirements,
-    test_suite='tests',
-    tests_require=test_requirements,
-    url='https://github.com/jlehrer1/sql_to_pandas',
-    version='0.1.0',
+)
