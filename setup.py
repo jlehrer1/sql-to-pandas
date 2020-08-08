@@ -7,12 +7,12 @@ from setuptools import find_packages
 HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
-README = (HERE / "README.md").read_text()
+README = (HERE / "sql_to_pandas/README.md").read_text()
 
 setup(
     name='sqltopandas',         # How you named your package folder (MyLib)
     packages=find_packages(exclude=("tests",)),  
-    version='0.01',      # Start with a small number and increase it with every change you make
+    version='0.02',      # Start with a small number and increase it with every change you make
     # Chose a license from here: https://help.github.com/articles/licensing-a-repository
     license='MIT',
     description='Use SQL expressions to query Pandas DataFrames',
