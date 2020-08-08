@@ -4,7 +4,7 @@ from ..helpers import helpers
 def _parse_WHERE(df: pd.DataFrame, string: str) -> pd.DataFrame:
     """Parses which rows to use from the DataFrame. Runs in place of WHERE <condition>"""
     # print('INPUT STR TO WHERE IS: ', string)
-    
+
     # Get the columns and literal name for building up the string to eval()
     df_cols = df.columns.to_list()
     df_literal_name = f'{df=}'.split('=')[0]
@@ -22,8 +22,11 @@ def _parse_WHERE(df: pd.DataFrame, string: str) -> pd.DataFrame:
         '<': '<',
         '=': '=='
     }
-
-    i = string.index('where') + 1
+    try:
+        i = string.index('where') + 1
+    except ValueError:
+        return df
+        
     conditions = []
 
     # Build up conditions until end of statement
