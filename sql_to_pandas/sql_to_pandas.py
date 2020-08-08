@@ -23,7 +23,7 @@ class SQLtoPD:
 
         if string[1] != 'by':
             raise SyntaxError('Error: invalid syntax. Try ORDER BY <col> <ASC/DESC>.')
-        
+
         # Remove 'order', 'by'
         string = string[2:]
 
@@ -87,7 +87,8 @@ class SQLtoPD:
         # All currently handled SQL methods
         DML_mapping = {
             'select' : select._parse_SELECT,
-            'where' : where._parse_WHERE,
+            # Handled in parse_SELECT
+            # 'where' : where._parse_WHERE,
             'order' : self._parse_ORDER_BY,
             'limit' : self._parse_LIMIT,
         }
